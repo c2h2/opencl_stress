@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -83,8 +84,9 @@ int main(int argc, char** argv) {
     int verbose=0;
     char* value;
     size_t valueSize;
+    clock_t t;
     const int LIST_SIZE = 1024 * 1024;
-    const int RUN_TIMES = 1024;
+    const int RUN_TIMES = 1000;
     int *A = (int*)malloc(sizeof(int)*LIST_SIZE);
     int *B = (int*)malloc(sizeof(int)*LIST_SIZE);
     for(i = 0; i < LIST_SIZE; i++) {
@@ -167,6 +169,7 @@ int main(int argc, char** argv) {
     cl_mem c_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, LIST_SIZE * sizeof(int), NULL, &ret);
 
     int run_times;
+    t = clock();
     for(run_times=0; run_times < RUN_TIMES; run_times++){
 
         // Copy the lists A and B to their respective memory buffers
@@ -192,6 +195,8 @@ int main(int argc, char** argv) {
         size_t local_item_size = 64; // Process in groups of 64
         ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,  &global_item_size, &local_item_size, 0, NULL, NULL);
     }
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
     // Read the memory buffer C on the device to the local variable C
     int *C = (int*)malloc(sizeof(int)*LIST_SIZE);
@@ -205,6 +210,7 @@ int main(int argc, char** argv) {
     }
 
     printf("Processed: %d times, with %d items.\n", RUN_TIMES, LIST_SIZE);
+    printf("OpenCL took %f seconds to execute \n", time_taken);
 
     // Clean up
     ret = clFlush(command_queue);
