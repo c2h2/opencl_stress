@@ -10,6 +10,9 @@
 
 #define MAX_SOURCE_SIZE (0x100000)
 
+#define LIST_SIZE 1024 * 1024
+#define RUN_TIMES 10000
+
 int print_cl_devices(){
     int i, j;
     char* value;
@@ -85,8 +88,7 @@ int main(int argc, char** argv) {
     char* value;
     size_t valueSize;
     clock_t t;
-    const int LIST_SIZE = 1024 * 1024;
-    const int RUN_TIMES = 1000;
+
     int *A = (int*)malloc(sizeof(int)*LIST_SIZE);
     int *B = (int*)malloc(sizeof(int)*LIST_SIZE);
     for(i = 0; i < LIST_SIZE; i++) {
@@ -197,7 +199,7 @@ int main(int argc, char** argv) {
     }
     t = clock() - t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
-
+    double cps = RUN_TIMES / time_taken;
     // Read the memory buffer C on the device to the local variable C
     int *C = (int*)malloc(sizeof(int)*LIST_SIZE);
     ret = clEnqueueReadBuffer(command_queue, c_mem_obj, CL_TRUE, 0,  LIST_SIZE * sizeof(int), C, 0, NULL, NULL);
@@ -210,7 +212,7 @@ int main(int argc, char** argv) {
     }
 
     printf("Processed: %d times, with %d items.\n", RUN_TIMES, LIST_SIZE);
-    printf("OpenCL took %f seconds to execute \n", time_taken);
+    printf("OpenCL took %f seconds to execute,  %f loop per seconds. \n", time_taken, cps);
 
     // Clean up
     ret = clFlush(command_queue);
